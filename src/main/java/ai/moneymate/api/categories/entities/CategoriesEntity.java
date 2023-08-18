@@ -38,4 +38,3 @@ public class CategoriesEntity {
     @JoinColumn(name = "user_id", referencedColumnName = "id", foreignKey = @ForeignKey(name = "user_id"))
     private UserEntity user;
 }
-

@@ -16,7 +16,6 @@ public record AccountRequest(
     String account_number,
 
     @NotNull
-    @AssertTrue
     boolean is_default,
 
     @NotNull

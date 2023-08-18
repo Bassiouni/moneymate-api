@@ -4,8 +4,8 @@ import ai.moneymate.api.accounts.controller.AccountRequest;
 import ai.moneymate.api.accounts.dto.AccountDTO;
 import ai.moneymate.api.accounts.entities.AccountsEntity;
 import ai.moneymate.api.accounts.repository.AccountsRepository;
+import ai.moneymate.api.users.components.UsersComponent;
 import ai.moneymate.api.users.entities.UserEntity;
-import ai.moneymate.api.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AccountsService {
     private final AccountsRepository accountsRepository;
-    private final UserRepository userRepository;
+    private final UsersComponent usersComponent;
 
     public AccountDTO getAccountInfoByID(int id) {
         Optional<AccountsEntity> accountEntity = this.accountsRepository.findById(id);
@@ -29,12 +29,9 @@ public class AccountsService {
     }
 
     public AccountDTO createAccountForAuthenticatedUser(AccountRequest accountRequest) {
-        UserEntity user = (UserEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        int userId = user.getId();
-
         AccountsEntity accountsEntity = accountRequest.asEntity();
 
-        accountsEntity.setUser(this.userRepository.findById(userId).get());
+        accountsEntity.setUser(this.usersComponent.getAuthenticatedUserFromDB());
 
         return AccountDTO.from(this.accountsRepository.save(accountsEntity));
     }
@@ -44,10 +41,13 @@ public class AccountsService {
         Optional<Set<AccountsEntity>> accounts = this.accountsRepository.findByUser(user);
         if (accounts.isEmpty())
             throw new RuntimeException();
+
         Set<AccountDTO> accountDTOSet = new HashSet<>();
+
         for (AccountsEntity acc : accounts.get()) {
             accountDTOSet.add(AccountDTO.from(acc));
         }
+
         return  accountDTOSet;
     }
 }
